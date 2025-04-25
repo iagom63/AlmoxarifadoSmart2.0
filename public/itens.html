@@ -1,27 +1,94 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Detalhes dos Itens</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="logo"><img src="logo.png" alt="Logo"></div>
+
+  <div class="logo">
+    <img src="logo.png" alt="Logo" />
+  </div>
+
   <div class="formulario-container">
     <h1>Detalhar Itens</h1>
-    <form action="/itens" method="post">
-      <input type="hidden" name="solicitante" value="">
-      <input type="hidden" name="destino" value="">
-      <input type="hidden" name="autorizado" value="">
-      <label>Tipo:</label>
-      <input type="radio" name="tipo_0" value="material" checked>Material
-      <input type="radio" name="tipo_0" value="equipamento">Equipamento
-      <label>Descrição:</label><input name="descricao_0" required>
-      <label>Quantidade:</label><input type="number" name="quantidade_0" required>
-      <label>Unidade:</label><input name="unidade_0" required>
-      <input type="hidden" name="count" value="1">
-      <button class="botao-adicionar" type="submit">Finalizar</button>
+
+    <!-- Exibe os dados vindos da página anterior -->
+    <p>
+      <strong>Solicitante:</strong>
+      <span id="display-solicitante"></span>
+    </p>
+    <p>
+      <strong>Local para Utilização:</strong>
+      <span id="display-destino"></span>
+    </p>
+    <p>
+      <strong>Autorizado Por:</strong>
+      <span id="display-autorizado"></span>
+    </p>
+
+    <form action="/itens" method="post" id="itens-form">
+      <!-- Campos ocultos para enviar junto ao POST -->
+      <input type="hidden" name="solicitante" id="input-solicitante" />
+      <input type="hidden" name="destino" id="input-destino" />
+      <input type="hidden" name="autorizado" id="input-autorizado" />
+      <input type="hidden" name="count" id="input-count" />
+
+      <!-- Aqui vão os campos dos itens, gerados dinamicamente via JS -->
+      <div id="itens-container"></div>
+
+      <button class="botao-adicionar" type="submit">
+        Finalizar
+      </button>
     </form>
   </div>
+
+  <script>
+    // Função para ler query string
+    function getParams() {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        solicitante: params.get("solicitante") || "",
+        destino:     params.get("destino")     || "",
+        autorizado:  params.get("autorizado")  || "",
+        count:       parseInt(params.get("count"), 10) || 0
+      };
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const { solicitante, destino, autorizado, count } = getParams();
+
+      // Preenche os spans de exibição
+      document.getElementById("display-solicitante").textContent = solicitante;
+      document.getElementById("display-destino").textContent     = destino;
+      document.getElementById("display-autorizado").textContent  = autorizado;
+
+      // Preenche os inputs ocultos para o POST
+      document.getElementById("input-solicitante").value = solicitante;
+      document.getElementById("input-destino").value     = destino;
+      document.getElementById("input-autorizado").value  = autorizado;
+      document.getElementById("input-count").value       = count;
+
+      // Gera dinamicamente os campos de cada item
+      const container = document.getElementById("itens-container");
+      for (let i = 0; i < count; i++) {
+        const fieldset = document.createElement("fieldset");
+        fieldset.innerHTML = `
+          <legend>Item ${i+1}</legend>
+          <label>Tipo:</label>
+            <input type="radio" name="tipo_${i}" value="material" checked /> Material
+            <input type="radio" name="tipo_${i}" value="equipamento" /> Equipamento
+          <label>Descrição:</label>
+            <input type="text" name="descricao_${i}" required />
+          <label>Quantidade:</label>
+            <input type="number" name="quantidade_${i}" required />
+          <label>Unidade:</label>
+            <input type="text" name="unidade_${i}" required />
+        `;
+        container.appendChild(fieldset);
+      }
+    });
+  </script>
 </body>
 </html>
