@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="logo"><img src="logo.png" alt="Logo"></div>
+  <h1 class="dashboard-title">Dashboard de Saída</h1>
+  <div class="dashboard-container">
+    <div class="columns-container">
+      <div class="list-column">
+        <h3>Materiais</h3>
+        <ul id="lista-materiais"></ul>
+      </div>
+      <div class="list-column">
+        <h3>Equipamentos</h3>
+        <ul id="lista-equipamentos"></ul>
+      </div>
+    </div>
+  </div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    function renderDashboard(data) {
+      const mat = document.getElementById('lista-materiais');
+      const eqp = document.getElementById('lista-equipamentos');
+      mat.innerHTML = ''; eqp.innerHTML = '';
+      data.forEach((item,i) => {
+        const li = document.createElement('li');
+        li.innerHTML = `<strong>${item.nome}</strong> - ${item.descricao} (${item.quantidade} ${item.unidade})`;
+        const btnRem = document.createElement('button');
+        btnRem.textContent = item.tipo==='equipamento'?'Devolvido':'Remover';
+        btnRem.onclick = () => fetch(`/remover/${i}`,{method:'POST'});
+        li.appendChild(btnRem);
+        if(item.tipo==='equipamento'){
+          const chk = document.createElement('input');
+          chk.type='checkbox'; chk.checked=item.delivered;
+          chk.onchange=()=>fetch(`/reordenar/${i}`,{method:'POST'});
+          li.insertBefore(chk, li.firstChild);
+          eqp.appendChild(li);
+        } else mat.appendChild(li);
+      });
+    }
+    function atualizarDashboard(){ fetch('/api/saidas').then(r=>r.json()).then(renderDashboard); }
+    socket.on('update', atualizarDashboard);
+    atualizarDashboard();
+  </script>
+</body>
+</html>

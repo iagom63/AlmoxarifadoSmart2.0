@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Tela de Chamada</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+  <div class="logo"><img src="logo.png" alt="Logo"></div>
+  <div class="tela-container">
+    <h1>Chamada de Senhas</h1>
+    <ul id="lista-chamada" class="lista-chamada"></ul>
+  </div>
+  <script>
+    function renderTela(data){
+      const ul = document.getElementById('lista-chamada');
+      ul.innerHTML = '';
+      const groups = {};
+      data.forEach(item=>{
+        const key = `${item.nome}|${item.observacao}|${item.responsavel}`;
+        if(!groups[key]) groups[key]={main:item,items:[]};
+        groups[key].items.push(item);
+      });
+      Object.values(groups).forEach((g,i)=>{
+        const li=document.createElement('li');
+        if(i===0) li.classList.add('topo');
+        const main=document.createElement('div');
+        main.innerHTML=`
+          <p><strong>Nome:</strong> ${g.main.nome}</p>
+          <p><strong>Local:</strong> ${g.main.observacao}</p>
+          <p><strong>Autorizado Por:</strong> ${g.main.responsavel}</p>
+          <p><strong>Hora:</strong> ${new Date(g.main.timestamp).toLocaleTimeString()}</p>
+        `;
+        const details=document.createElement('div');
+        g.items.forEach(it=>{
+          const span=document.createElement('span');
+          span.innerHTML=`<strong>${it.tipo}</strong> - ${it.descricao} - ${it.quantidade} ${it.unidade}`;
+          details.appendChild(span);
+        });
+        li.appendChild(main);
+        li.appendChild(details);
+        ul.appendChild(li);
+      });
+    }
+    const socket=io();
+    socket.on('update',()=>fetch('/api/saidas').then(r=>r.json()).then(renderTela));
+    fetch('/api/saidas').then(r=>r.json()).then(renderTela);
+  </script>
+</body>
+</html>
