@@ -15,12 +15,15 @@ const DATA_FILE = path.join(__dirname, 'saida.json');
 let saidas = [];
 
 // Função para fazer commit e push no GitHub
+const { exec } = require('child_process');
+const path = require('path');
+
 function commitToGit() {
   const projectPath = path.join(__dirname);
   const gitUser = process.env.GIT_USER;
   const gitEmail = process.env.GIT_EMAIL;
   const gitToken = process.env.GIT_TOKEN;
-  const repoUrl = `https://${gitUser}:${gitToken}@github.com/usuario/almoxarifado-smart-backup.git`;
+  const repoUrl = `https://${gitUser}:${gitToken}@github.com/iagom63/AlmoxarifadoSmart2.0.git`;
 
   exec(
     `
