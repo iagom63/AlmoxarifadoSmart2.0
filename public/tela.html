@@ -7,9 +7,9 @@
   <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
-  <div class="logo"><img src="logo.png" alt="Logo"></div>
+  <div class="logo-tela"><img src="logo.png" alt="Logo"></div>
   <div class="tela-container">
-    <h1>Chamada de Senhas</h1>
+    <h1>Requisição de Insumo</h1>
     <ul id="lista-chamada" class="lista-chamada"></ul>
   </div>
   <script>
@@ -28,8 +28,6 @@
         const main=document.createElement('div');
         main.innerHTML=`
           <p><strong>Nome:</strong> ${g.main.nome}</p>
-          <p><strong>Local:</strong> ${g.main.observacao}</p>
-          <p><strong>Autorizado Por:</strong> ${g.main.responsavel}</p>
           <p><strong>Hora:</strong> ${new Date(g.main.timestamp).toLocaleTimeString()}</p>
         `;
         const details=document.createElement('div');
