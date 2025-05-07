@@ -4,7 +4,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const fs = require('fs');
 const path = require('path');
-const { exec } = require('child_process');
+const { exec } = require('child_process'); // Importação única
 
 const app = express();
 const server = http.createServer(app);
@@ -15,9 +15,6 @@ const DATA_FILE = path.join(__dirname, 'saida.json');
 let saidas = [];
 
 // Função para fazer commit e push no GitHub
-const { exec } = require('child_process');
-const path = require('path');
-
 function commitToGit() {
   const projectPath = path.join(__dirname);
   const gitUser = process.env.GIT_USER;
