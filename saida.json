@@ -86,5 +86,16 @@
     "unidade": "Saco",
     "delivered": false,
     "timestamp": 1746735891860
+  },
+  {
+    "nome": "Pedreiro Pereira",
+    "observacao": "3o Tipo- Alvenaria",
+    "responsavel": "Flavio",
+    "tipo": "material",
+    "descricao": "Tijolo  9x19x19",
+    "quantidade": "40",
+    "unidade": "Un",
+    "delivered": false,
+    "timestamp": 1746735952120
   }
 ]
