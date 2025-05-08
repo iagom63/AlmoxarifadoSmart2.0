@@ -88,17 +88,6 @@
     "timestamp": 1746735966185
   },
   {
-    "nome": "Ytatuan",
-    "observacao": "3° Pavimento",
-    "responsavel": "Almir",
-    "tipo": "equipamento",
-    "descricao": "Martelete ",
-    "quantidade": "1",
-    "unidade": "Unidade",
-    "delivered": false,
-    "timestamp": 1746735966245
-  },
-  {
     "nome": "Pedreiro Pereira",
     "observacao": "3o Tipo- Alvenaria",
     "responsavel": "Flavio",
@@ -119,5 +108,16 @@
     "unidade": "Bisnagas",
     "delivered": false,
     "timestamp": 1746736003433
+  },
+  {
+    "nome": "Ytatuan",
+    "observacao": "3° Pavimento",
+    "responsavel": "Almir",
+    "tipo": "equipamento",
+    "descricao": "Martelete ",
+    "quantidade": "1",
+    "unidade": "Unidade",
+    "delivered": true,
+    "timestamp": 1746735966245
   }
 ]
