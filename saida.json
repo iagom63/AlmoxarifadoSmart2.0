@@ -4,17 +4,6 @@
     "observacao": "3° Pavimento",
     "responsavel": "Almir",
     "tipo": "material",
-    "descricao": "Cimento ",
-    "quantidade": "2",
-    "unidade": "sacos",
-    "delivered": false,
-    "timestamp": 1746735880667
-  },
-  {
-    "nome": "José Pereira",
-    "observacao": "3° Pavimento",
-    "responsavel": "Almir",
-    "tipo": "material",
     "descricao": "Graute",
     "quantidade": "2",
     "unidade": "sacos",
