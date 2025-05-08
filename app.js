@@ -26,6 +26,7 @@ function commitToGit() {
     `
     git config --global user.name "${gitUser}" &&
     git config --global user.email "${gitEmail}" &&
+    git -C ${projectPath} checkout main &&
     git -C ${projectPath} add saida.json &&
     git -C ${projectPath} commit -m "Backup automático via Render" &&
     git -C ${projectPath} push ${repoUrl} main
