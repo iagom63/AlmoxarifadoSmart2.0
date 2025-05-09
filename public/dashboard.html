@@ -1,34 +1,32 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <title>Dashboard de Saída</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="logo">
-    <img src="logo.png" alt="Logo" />
-  </div>
-
+  <div class="logo"><img src="logo.png" alt="Logo"></div>
   <h1 class="dashboard-title">Dashboard de Saída</h1>
   <div class="dashboard-container">
     <div class="columns-container">
-      <!-- Materiais -->
       <div class="list-column">
         <h3>Materiais</h3>
         <ul id="lista-materiais"></ul>
       </div>
-      <!-- Equipamentos -->
       <div class="list-column">
         <h3>Equipamentos</h3>
         <ul id="lista-equipamentos"></ul>
       </div>
     </div>
+    <!-- Botão para Exportar Relatório -->
+    <button id="exportar-relatorio" class="botao-exportar">Exportar Relatório</button>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    // renderiza lists
+    const socket = io();
+
     function renderDashboard(data) {
       const mat = document.getElementById('lista-materiais');
       const eqp = document.getElementById('lista-equipamentos');
@@ -37,35 +35,18 @@
 
       data.forEach((item, i) => {
         const li = document.createElement('li');
-        li.innerHTML = `
-          <strong>${item.nome}</strong> —
-          ${item.descricao} (${item.quantidade} ${item.unidade})
-        `;
-        // botão remover / devolvido
-        const btn = document.createElement('button');
-        btn.className = 'botao-remover';
-        btn.textContent = item.tipo === 'equipamento'
-          ? 'Devolvido' : 'Remover';
-        btn.onclick = () => {
-          fetch(`/remover/${i}`, { method: 'POST' })
-            .catch(console.error);
-        };
-        li.appendChild(btn);
+        li.innerHTML = `<strong>${item.nome}</strong> - ${item.descricao} (${item.quantidade} ${item.unidade})`;
+
+        const btnRem = document.createElement('button');
+        btnRem.textContent = item.tipo === 'equipamento' ? 'Devolvido' : 'Remover';
+        btnRem.onclick = () => fetch(`/remover/${i}`, { method: 'POST' });
+        li.appendChild(btnRem);
 
         if (item.tipo === 'equipamento') {
-          // checkbox entregue
           const chk = document.createElement('input');
           chk.type = 'checkbox';
           chk.checked = item.delivered;
-          chk.onchange = () => {
-            fetch(`/reordenar/${i}`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ delivered: chk.checked })
-            })
-            .then(() => fetchAndRender())
-            .catch(console.error);
-          };
+          chk.onchange = () => fetch(`/reordenar/${i}`, { method: 'POST' });
           li.insertBefore(chk, li.firstChild);
           eqp.appendChild(li);
         } else {
@@ -74,19 +55,19 @@
       });
     }
 
-    function fetchAndRender() {
+    function atualizarDashboard() {
       fetch('/api/saidas')
         .then(r => r.json())
-        .then(renderDashboard)
-        .catch(console.error);
+        .then(renderDashboard);
     }
 
-    // WebSocket → atualiza ao receber 'update'
-    const socket = io();
-    socket.on('update', fetchAndRender);
+    // Evento para exportar o relatório ao clicar no botão
+    document.getElementById('exportar-relatorio').addEventListener('click', () => {
+      window.location.href = '/exportar-relatorio';
+    });
 
-    // primeira chamada
-    fetchAndRender();
+    socket.on('update', atualizarDashboard);
+    atualizarDashboard();
   </script>
 </body>
 </html>
