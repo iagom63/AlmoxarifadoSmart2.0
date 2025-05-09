@@ -4,14 +4,16 @@ const http = require('http');
 const { Server } = require('socket.io');
 const fs = require('fs');
 const path = require('path');
-const { exec } = require('child_process'); // Importação única
+const { exec } = require('child_process');
+const ExcelJS = require('exceljs');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Caminho do arquivo de dados
+// Caminhos dos arquivos de dados
 const DATA_FILE = path.join(__dirname, 'saida.json');
+const RELATORIO_FILE = path.join(__dirname, 'relatorio.json');
 let saidas = [];
 
 // Função para fazer commit e push no GitHub
@@ -27,7 +29,7 @@ function commitToGit() {
     git config --global user.name "${gitUser}" &&
     git config --global user.email "${gitEmail}" &&
     git -C ${projectPath} checkout main &&
-    git -C ${projectPath} add saida.json &&
+    git -C ${projectPath} add saida.json relatorio.json &&
     git -C ${projectPath} commit -m "Backup automático via Render" &&
     git -C ${projectPath} push ${repoUrl} main
     `,
@@ -56,11 +58,38 @@ function loadSaidas() {
   }
 }
 
-// Salva os registros no JSON e faz o backup
+// Carrega os registros do relatório
+function loadRelatorio() {
+  try {
+    if (fs.existsSync(RELATORIO_FILE)) {
+      const raw = fs.readFileSync(RELATORIO_FILE, 'utf8');
+      return JSON.parse(raw);
+    } else {
+      return [];
+    }
+  } catch (err) {
+    console.error('Erro ao ler relatorio.json:', err);
+    return [];
+  }
+}
+
+// Salva os registros no relatório
+function saveRelatorio(data) {
+  try {
+    const relatorio = loadRelatorio();
+    relatorio.push(...data);
+    fs.writeFileSync(RELATORIO_FILE, JSON.stringify(relatorio, null, 2), 'utf8');
+  } catch (err) {
+    console.error('Erro ao salvar relatorio.json:', err);
+  }
+}
+
+// Salva os registros no JSON e no relatório
 function saveSaidas() {
   try {
     fs.writeFileSync(DATA_FILE, JSON.stringify(saidas, null, 2), 'utf8');
-    commitToGit();  // Realiza o backup no GitHub
+    saveRelatorio(saidas);  // Salva também no relatório
+    commitToGit();          // Realiza o backup no GitHub
   } catch (err) {
     console.error('Erro ao salvar saida.json:', err);
   }
@@ -72,8 +101,6 @@ loadSaidas();
 // Middlewares para parse de corpo
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-
-// Serve arquivos estáticos de /public
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Rota principal: redireciona ao formulário
@@ -88,21 +115,21 @@ app.post('/itens', (req, res) => {
 
   for (let i = 0; i < n; i++) {
     const item = {
-      nome:        solicitante,
-      observacao:  destino,
+      nome: solicitante,
+      observacao: destino,
       responsavel: autorizado,
-      tipo:        req.body[`tipo_${i}`],
-      descricao:   req.body[`descricao_${i}`],
-      quantidade:  req.body[`quantidade_${i}`],
-      unidade:     req.body[`unidade_${i}`],
-      delivered:   false,
-      timestamp:   Date.now()
+      tipo: req.body[`tipo_${i}`],
+      descricao: req.body[`descricao_${i}`],
+      quantidade: req.body[`quantidade_${i}`],
+      unidade: req.body[`unidade_${i}`],
+      delivered: false,
+      timestamp: Date.now()
     };
     saidas.push(item);
   }
 
   saveSaidas();
-  io.emit('update');           // notifica clientes via WebSocket
+  io.emit('update');
   res.redirect('/solicitacao.html');
 });
 
@@ -111,50 +138,29 @@ app.get('/api/saidas', (req, res) => {
   res.json(saidas);
 });
 
-// Remove item pelo índice
-app.post('/remover/:index', (req, res) => {
-  const i = Number(req.params.index);
-  if (!isNaN(i) && i >= 0 && i < saidas.length) {
-    saidas.splice(i, 1);
-    saveSaidas();
-    io.emit('update');
-  }
-  res.redirect('/dashboard.html');
-});
-
-// Marca como entregue e move para o fim
-app.post('/reordenar/:index', (req, res) => {
-  const i = Number(req.params.index);
-  if (!isNaN(i) && i >= 0 && i < saidas.length) {
-    const it = saidas.splice(i, 1)[0];
-    it.delivered = true;
-    saidas.push(it);
-    saveSaidas();
-    io.emit('update');
-  }
-  res.redirect('/dashboard.html');
-});
-
-// Exporta para Excel
-app.get('/exportar', async (req, res) => {
+// Rota para exportar o relatório em Excel
+app.get('/exportar-relatorio', async (req, res) => {
+  const relatorio = loadRelatorio();
   const wb = new ExcelJS.Workbook();
-  const ws = wb.addWorksheet('Saidas');
+  const ws = wb.addWorksheet('Relatório');
+
   ws.columns = [
-    { header: 'Nome',          key: 'nome',         width: 30 },
-    { header: 'Local',         key: 'observacao',   width: 30 },
-    { header: 'Autorizado Por',key: 'responsavel',  width: 30 },
-    { header: 'Tipo',          key: 'tipo',         width: 15 },
-    { header: 'Descrição',     key: 'descricao',    width: 30 },
-    { header: 'Qtd',           key: 'quantidade',   width: 10 },
-    { header: 'Unidade',       key: 'unidade',      width: 10 },
-    { header: 'Entregue',      key: 'delivered',    width: 10 },
-    { header: 'Timestamp',     key: 'timestamp',    width: 25 }
+    { header: 'Nome', key: 'nome', width: 30 },
+    { header: 'Local', key: 'observacao', width: 30 },
+    { header: 'Autorizado Por', key: 'responsavel', width: 30 },
+    { header: 'Tipo', key: 'tipo', width: 15 },
+    { header: 'Descrição', key: 'descricao', width: 30 },
+    { header: 'Qtd', key: 'quantidade', width: 10 },
+    { header: 'Unidade', key: 'unidade', width: 10 },
+    { header: 'Entregue', key: 'delivered', width: 10 },
+    { header: 'Timestamp', key: 'timestamp', width: 25 }
   ];
-  ws.addRows(saidas);
+
+  ws.addRows(relatorio);
 
   res.setHeader('Content-Type',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-  res.setHeader('Content-Disposition', 'attachment; filename=saidas.xlsx');
+  res.setHeader('Content-Disposition', 'attachment; filename=relatorio.xlsx');
 
   await wb.xlsx.write(res);
   res.end();
