@@ -20,7 +20,7 @@
       </div>
     </div>
     <!-- Botão para Exportar Relatório -->
-    <button id="exportar-relatorio" class="botao-exportar">Exportar Relatório</button>
+    <button id="exportar-relatorio" class="botao-exportar">Exportar Relatório Do Dia</button>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
@@ -61,7 +61,6 @@
         .then(renderDashboard);
     }
 
-    // Evento para exportar o relatório ao clicar no botão
     document.getElementById('exportar-relatorio').addEventListener('click', () => {
       window.location.href = '/exportar-relatorio';
     });
