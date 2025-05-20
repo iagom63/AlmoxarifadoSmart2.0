@@ -14,6 +14,7 @@ const FILE_PATH = path.join(__dirname, 'relatorio.json');
 app.use(express.static('public'));
 app.use(express.json());
 
+// Função para obter a data atual no formato ISO
 const getCurrentDate = () => {
   const now = new Date();
   return now.toISOString().split('T')[0];
@@ -97,6 +98,25 @@ app.get('/exportar-relatorio', (req, res) => {
   });
 });
 
+// Rota para exportar relatório completo
+app.get('/exportar-relatorio-completo', (req, res) => {
+  const dados = carregarDados();
+
+  if (dados.length === 0) {
+    res.status(404).send('Nenhum item encontrado');
+    return;
+  }
+
+  const relatorioPath = path.join(__dirname, 'relatorio_completo.json');
+  fs.writeFile(relatorioPath, JSON.stringify(dados, null, 2), (err) => {
+    if (err) {
+      res.status(500).send('Erro ao criar o relatório completo');
+      return;
+    }
+    res.download(relatorioPath, 'relatorio_completo.json');
+  });
+});
+
 // Rota para adicionar um novo item
 app.post('/adicionar', (req, res) => {
   const { nome, descricao, quantidade, unidade, tipo } = req.body;
@@ -111,6 +131,16 @@ app.post('/adicionar', (req, res) => {
   res.sendStatus(201);
 });
 
+// Função para gerar relatório com filtros
+function generateReport(dataInicio, dataFim, tipo) {
+  const dados = carregarDados();
+  return dados.filter(item => 
+    (!dataInicio || item.data >= dataInicio) &&
+    (!dataFim || item.data <= dataFim) &&
+    (!tipo || item.tipo === tipo)
+  );
+}
+
 // Socket.io para atualizações em tempo real
 io.on('connection', (socket) => {
   console.log('Novo cliente conectado');
@@ -123,3 +153,35 @@ io.on('connection', (socket) => {
 server.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
+
+// Funções de Relatório no Frontend
+function generateTodayReport() {
+  fetch('/exportar-relatorio')
+    .then(response => {
+      if (response.ok) {
+        alert('Relatório do dia exportado com sucesso!');
+      } else {
+        alert('Erro ao exportar o relatório do dia.');
+      }
+    });
+}
+
+function exportCompleteReport() {
+  fetch('/exportar-relatorio-completo')
+    .then(response => {
+      if (response.ok) {
+        alert('Relatório completo exportado com sucesso!');
+      } else {
+        alert('Erro ao exportar o relatório completo.');
+      }
+    });
+}
+
+function viewReports() {
+  fetch('/api/saidas')
+    .then(response => response.json())
+    .then(data => {
+      console.log('Relatórios:', data);
+      alert(`Total de relatórios: ${data.length}`);
+    });
+}
