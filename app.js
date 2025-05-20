@@ -114,6 +114,14 @@ app.post('/adicionar', (req, res) => {
   res.sendStatus(201);
 });
 
+app.use(express.urlencoded({ extended: true })); // Necessário para forms HTML
+
+// ✅ NOVA ROTA para receber o formulário de itens.html
+app.post('/itens', (req, res) => {
+  console.log('Dados recebidos do formulário:', req.body);
+  res.redirect('/dashboard.html');
+});
+
 // Redirecionar raiz para a página de solicitação
 app.get('/', (req, res) => {
   res.redirect('/solicitacao.html');
