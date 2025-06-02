@@ -10,40 +10,80 @@
   <div class="logo-tela"><img src="logo.png" alt="Logo"></div>
   <div class="tela-container">
     <h1>Requisição de Insumo</h1>
-    <ul id="lista-chamada" class="lista-chamada"></ul>
+    <div class="columns-container">
+      <div class="list-column">
+        <h2>Materiais</h2>
+        <ul id="lista-materiais" class="lista-chamada"></ul>
+      </div>
+      <div class="list-column">
+        <h2>Equipamentos</h2>
+        <ul id="lista-equipamentos" class="lista-chamada"></ul>
+      </div>
+    </div>
   </div>
   <script>
     function renderTela(data){
-      const ul = document.getElementById('lista-chamada');
-      ul.innerHTML = '';
-      const groups = {};
-      data.forEach(item=>{
+      const ulMateriais   = document.getElementById('lista-materiais');
+      const ulEquipamentos = document.getElementById('lista-equipamentos');
+      ulMateriais.innerHTML = '';
+      ulEquipamentos.innerHTML = '';
+
+      const gruposMateriais = {};
+      const gruposEquipamentos = {};
+
+      data.filter(i => i.visivel !== false && !i.delivered).forEach(item => {
         const key = `${item.nome}|${item.observacao}|${item.responsavel}`;
-        if(!groups[key]) groups[key]={main:item,items:[]};
-        groups[key].items.push(item);
+        if (item.tipo === 'material') {
+          if (!gruposMateriais[key]) gruposMateriais[key] = { main: item, items: [] };
+          gruposMateriais[key].items.push(item);
+        } else {
+          if (!gruposEquipamentos[key]) gruposEquipamentos[key] = { main: item, items: [] };
+          gruposEquipamentos[key].items.push(item);
+        }
       });
-      Object.values(groups).forEach((g,i)=>{
-        const li=document.createElement('li');
-        if(i===0) li.classList.add('topo');
-        const main=document.createElement('div');
-        main.innerHTML=`
+
+      Object.values(gruposMateriais).forEach((g, i) => {
+        const li = document.createElement('li');
+        if (i === 0) li.classList.add('topo');
+        const main = document.createElement('div');
+        main.innerHTML = `
           <p><strong>Nome:</strong> ${g.main.nome}</p>
           <p><strong>Hora:</strong> ${new Date(g.main.timestamp).toLocaleTimeString()}</p>
         `;
-        const details=document.createElement('div');
-        g.items.forEach(it=>{
-          const span=document.createElement('span');
-          span.innerHTML=`<strong>${it.tipo}</strong> - ${it.descricao} - ${it.quantidade} ${it.unidade}`;
+        const details = document.createElement('div');
+        g.items.forEach(it => {
+          const span = document.createElement('span');
+          span.innerHTML = `<strong>${it.tipo}</strong> - ${it.descricao} - ${it.quantidade} ${it.unidade}`;
           details.appendChild(span);
         });
         li.appendChild(main);
         li.appendChild(details);
-        ul.appendChild(li);
+        ulMateriais.appendChild(li);
+      });
+
+      Object.values(gruposEquipamentos).forEach((g, i) => {
+        const li = document.createElement('li');
+        if (i === 0 && ulMateriais.children.length === 0) li.classList.add('topo');
+        const main = document.createElement('div');
+        main.innerHTML = `
+          <p><strong>Nome:</strong> ${g.main.nome}</p>
+          <p><strong>Hora:</strong> ${new Date(g.main.timestamp).toLocaleTimeString()}</p>
+        `;
+        const details = document.createElement('div');
+        g.items.forEach(it => {
+          const span = document.createElement('span');
+          span.innerHTML = `<strong>${it.tipo}</strong> - ${it.descricao} - ${it.quantidade} ${it.unidade}`;
+          details.appendChild(span);
+        });
+        li.appendChild(main);
+        li.appendChild(details);
+        ulEquipamentos.appendChild(li);
       });
     }
-    const socket=io();
-    socket.on('update',()=>fetch('/api/saidas').then(r=>r.json()).then(renderTela));
-    fetch('/api/saidas').then(r=>r.json()).then(renderTela);
+
+    const socket = io();
+    socket.on('update', () => fetch('/api/saidas').then(r => r.json()).then(renderTela));
+    fetch('/api/saidas').then(r => r.json()).then(renderTela);
   </script>
 </body>
 </html>
