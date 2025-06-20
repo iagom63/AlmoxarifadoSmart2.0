@@ -35,7 +35,10 @@
       data.filter(i => i.tipo === 'material')
           .forEach(item => {
             const li = document.createElement('li');
-            li.innerHTML = `<strong>${item.nome}</strong> – ${item.descricao} (${item.quantidade} ${item.unidade})`;
+            li.innerHTML = `<strong>${item.nome}</strong> – ${item.descricao} (${item.quantidade} ${item.unidade})<br>
+            <em>Autorizado por:</em> ${item.responsavel}<br>
+            <em>Hora:</em> ${new Date(item.timestamp).toLocaleTimeString()}<br>
+            <em>Data:</em> ${new Date(item.timestamp).toLocaleDateString()}`;
             const btn = document.createElement('button');
             btn.textContent = 'Remover';
             btn.onclick = () => fetch(`/remover/${item._id}`, { method: 'POST' });
@@ -58,7 +61,10 @@
         chk.onchange = () => fetch(`/reordenar/${item._id}`, { method: 'POST' });
 
         const span = document.createElement('span');
-        span.innerHTML = `<strong>${item.nome}</strong> – ${item.descricao} (${item.quantidade} ${item.unidade})`;
+        span.innerHTML = `<strong>${item.nome}</strong> – ${item.descricao} (${item.quantidade} ${item.unidade})<br>
+        <em>Autorizado por:</em> ${item.responsavel}<br>
+        <em>Hora:</em> ${new Date(item.timestamp).toLocaleTimeString()}<br>
+        <em>Data:</em> ${new Date(item.timestamp).toLocaleDateString()}`;
 
         const btnDev = document.createElement('button');
         btnDev.textContent = 'Devolvido';
