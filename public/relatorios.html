@@ -1,6 +1,4 @@
 <!DOCTYPE html>
-
-
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -13,80 +11,106 @@
         <!-- Exibe a data atual -->
         <p><strong>Data atual:</strong> <span id="currentDate"></span></p>
 
+        <!-- Formulário para Filtro -->
+        <div class="filter-section">
+            <label for="startDate">Data Inicial:</label>
+            <input type="date" id="startDate">
 
-    <!-- Formulário para Filtro -->
-    <div class="filter-section">
-        <label for="startDate">Data Inicial:</label>
-        <input type="date" id="startDate">
+            <label for="endDate">Data Final:</label>
+            <input type="date" id="endDate">
 
-        <label for="endDate">Data Final:</label>
-        <input type="date" id="endDate">
+            <label for="reportType">Tipo de Relatório:</label>
+            <select id="reportType">
+                <option value="saida">Saídas</option>
+                <option value="entrada">Entradas</option>
+                <option value="estoque">Estoque</option>
+            </select>
 
-        <label for="reportType">Tipo de Relatório:</label>
-        <select id="reportType">
-            <option value="saida">Saídas</option>
-            <option value="entrada">Entradas</option>
-            <option value="estoque">Estoque</option>
-        </select>
+            <button type="button" onclick="generateReport()">Gerar Relatório</button>
+        </div>
 
-        <button type="button" onclick="generateReport()">Gerar Relatório</button>
+        <!-- Botões de ação -->
+        <div class="actions">
+            <button type="button" onclick="generateTodayReport()">Relatório do Dia</button>
+            <button type="button" onclick="exportExcel()">Exportar Excel</button>
+        </div>
+
+        <!-- Tabela de Relatórios -->
+        <table id="reportTable">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Descrição</th>
+                    <th>Quantidade</th>
+                    <th>Data</th>
+                    <th>Entregue?</th>
+                    <th>Descontinuado?</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Relatórios serão listados aqui -->
+            </tbody>
+        </table>
     </div>
 
-    <!-- Botão para Relatório do Dia -->
-    <div class="actions">
-        <button type="button" onclick="generateTodayReport()">Relatório do Dia</button>
-        <button type="button" onclick="exportReport()">Exportar Relatório Filtrado</button>
-        <button type="button" onclick="viewReports()">Visualizar Relatórios</button>
-    </div>
+    <script>
+        // Inicialização de datas e carregamento inicial
+        window.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('currentDate').textContent = new Date().toLocaleDateString();
+            document.getElementById('startDate').value = today;
+            document.getElementById('endDate').value = today;
+            generateReport();
+        });
 
-    <!-- Tabela de Relatórios -->
-    <table id="reportTable">
-        <thead>
-            <tr>
-                <th>Nome</th>
-                <th>Descrição</th>
-                <th>Quantidade</th>
-                <th>Data</th>
-                <th>Entregue?</th>
-                <th>Descontinuado?</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Relatórios serão listados aqui -->
-        </tbody>
-    </table>
-</div>
+        // Busca dados e renderiza tabela de acordo com o filtro
+        async function generateReport() {
+            const start = document.getElementById('startDate').value;
+            const end   = document.getElementById('endDate').value;
 
-<script>
-    window.addEventListener('DOMContentLoaded', () => {
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('currentDate').textContent = new Date().toLocaleDateString();
-        document.getElementById('startDate').value = today;
-        document.getElementById('endDate').value = today;
-    });
+            try {
+                // Chama a API que retorna JSON de saídas
+                const res = await fetch('/api/saidas');
+                const data = await res.json();
+                // Filtra por data
+                const filtered = data.filter(item => item.data >= start && item.data <= end);
+                renderTable(filtered);
+            } catch (err) {
+                console.error('Erro ao gerar relatório:', err);
+            }
+        }
 
-    function generateReport() {
-        const start = document.getElementById('startDate').value;
-        const end   = document.getElementById('endDate').value;
+        // Gera relatório apenas do dia atual
+        function generateTodayReport() {
+            const today = document.getElementById('startDate').value;
+            document.getElementById('endDate').value = today;
+            generateReport();
+        }
+
         // Redireciona para download do Excel filtrado
-        window.location.href = `/exportar-relatorio-excel?inicio=${start}&fim=${end}`;
-    }
+        function exportExcel() {
+            const start = document.getElementById('startDate').value;
+            const end   = document.getElementById('endDate').value;
+            window.location.href = `/exportar-relatorio-excel?inicio=${start}&fim=${end}`;
+        }
 
-    function generateTodayReport() {
-        // Download do relatório do dia atual
-        window.location.href = '/exportar-relatorio';
-    }
-
-    function exportReport() {
-        // Reaproveita a lógica de geração geral
-        generateReport();
-    }
-
-    function viewReports() {
-        // Caso implemente visualização inline de relatórios
-        alert('Visualizar relatórios não implementado.');
-    }
-</script>
-
+        // Preenche a tabela com os itens filtrados
+        function renderTable(items) {
+            const tbody = document.querySelector('#reportTable tbody');
+            tbody.innerHTML = '';
+            items.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.nome}</td>
+                    <td>${item.descricao}</td>
+                    <td>${item.quantidade}</td>
+                    <td>${item.data}</td>
+                    <td>${item.delivered ? 'Sim' : 'Não'}</td>
+                    <td>${item.descontinuado ? 'Sim' : 'Não'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+    </script>
 </body>
 </html>
