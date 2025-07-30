@@ -1,4 +1,6 @@
 <!DOCTYPE html>
+
+
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -8,48 +10,83 @@
 <body>
     <div class="report-container">
         <h1>Geração de Relatórios</h1>
+        <!-- Exibe a data atual -->
+        <p><strong>Data atual:</strong> <span id="currentDate"></span></p>
 
-        <!-- Formulário para Filtro -->
-        <div class="filter-section">
-            <label for="startDate">Data Inicial:</label>
-            <input type="date" id="startDate">
 
-            <label for="endDate">Data Final:</label>
-            <input type="date" id="endDate">
+    <!-- Formulário para Filtro -->
+    <div class="filter-section">
+        <label for="startDate">Data Inicial:</label>
+        <input type="date" id="startDate">
 
-            <label for="reportType">Tipo de Relatório:</label>
-            <select id="reportType">
-                <option value="saida">Saídas</option>
-                <option value="entrada">Entradas</option>
-                <option value="estoque">Estoque</option>
-            </select>
+        <label for="endDate">Data Final:</label>
+        <input type="date" id="endDate">
 
-            <button onclick="generateReport()">Gerar Relatório</button>
-        </div>
+        <label for="reportType">Tipo de Relatório:</label>
+        <select id="reportType">
+            <option value="saida">Saídas</option>
+            <option value="entrada">Entradas</option>
+            <option value="estoque">Estoque</option>
+        </select>
 
-        <!-- Botão para Relatório do Dia -->
-        <div class="actions">
-            <button onclick="generateTodayReport()">Relatório do Dia</button>
-            <button onclick="exportReport()">Exportar PDF</button>
-            <button onclick="viewReports()">Visualizar Relatórios</button>
-        </div>
-
-        <!-- Tabela de Relatórios -->
-        <table id="reportTable">
-            <thead>
-                <tr>
-                    <th>Data</th>
-                    <th>Tipo</th>
-                    <th>Total de Registros</th>
-                    <th>Ações</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Relatórios serão listados aqui -->
-            </tbody>
-        </table>
+        <button type="button" onclick="generateReport()">Gerar Relatório</button>
     </div>
 
-    <script src="app.js"></script>
+    <!-- Botão para Relatório do Dia -->
+    <div class="actions">
+        <button type="button" onclick="generateTodayReport()">Relatório do Dia</button>
+        <button type="button" onclick="exportReport()">Exportar Relatório Filtrado</button>
+        <button type="button" onclick="viewReports()">Visualizar Relatórios</button>
+    </div>
+
+    <!-- Tabela de Relatórios -->
+    <table id="reportTable">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Descrição</th>
+                <th>Quantidade</th>
+                <th>Data</th>
+                <th>Entregue?</th>
+                <th>Descontinuado?</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Relatórios serão listados aqui -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString();
+        document.getElementById('startDate').value = today;
+        document.getElementById('endDate').value = today;
+    });
+
+    function generateReport() {
+        const start = document.getElementById('startDate').value;
+        const end   = document.getElementById('endDate').value;
+        // Redireciona para download do Excel filtrado
+        window.location.href = `/exportar-relatorio-excel?inicio=${start}&fim=${end}`;
+    }
+
+    function generateTodayReport() {
+        // Download do relatório do dia atual
+        window.location.href = '/exportar-relatorio';
+    }
+
+    function exportReport() {
+        // Reaproveita a lógica de geração geral
+        generateReport();
+    }
+
+    function viewReports() {
+        // Caso implemente visualização inline de relatórios
+        alert('Visualizar relatórios não implementado.');
+    }
+</script>
+
 </body>
 </html>
